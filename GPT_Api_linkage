@@ -25,7 +25,7 @@ function GPT(prompt) {
   var url = "https://api.openai.com/v1/chat/completions";
   
   var payload = {
-    "model": "gpt-4o-mini-2024-07-18",
+    "model": "gpt-4o-mini",
     "messages": [
       {
         "role": "system",
