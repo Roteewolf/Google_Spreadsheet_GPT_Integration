@@ -11,7 +11,7 @@
 이 코드를 사용하려면, Api키를 먼저 발급받고 Api키가 들어갈 위치에 Api키를 입력해야 합니다.
 
 
-
+```
 // onEdit 트리거: A열(1번 열)에 질문이 입력되면 같은 행의 B열(2번 열)에 정적인 GPT 응답을 기록합니다.
 function onEdit(e) {
   var sheet = e.range.getSheet();
