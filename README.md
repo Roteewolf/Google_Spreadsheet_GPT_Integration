@@ -9,3 +9,70 @@
 (기본적으로 제 입장에서 보기에, 코드 자체의 가독성도 준수하게 느껴집니다.)
 
 이 코드를 사용하려면, Api키를 먼저 발급받고 Api키가 들어갈 위치에 Api키를 입력해야 합니다.
+
+
+
+// onEdit 트리거: A열(1번 열)에 질문이 입력되면 같은 행의 B열(2번 열)에 정적인 GPT 응답을 기록합니다.
+function onEdit(e) {
+  var sheet = e.range.getSheet();
+  var editedRange = e.range;
+  
+  // 편집된 셀이 A열에 있을 때만 실행
+  if (editedRange.getColumn() !== 1) return;
+  
+  var numRows = editedRange.getNumRows();
+  var startRow = editedRange.getRow();
+  var values = editedRange.getValues();
+  
+  for (var i = 0; i < numRows; i++) {
+    var prompt = values[i][0];
+    // 같은 행의 B열에 이미 값이 있다면 건너뜁니다.
+    var answerCell = sheet.getRange(startRow + i, 2);
+    if (prompt && answerCell.getValue() === "") {
+      var answer = GPT(prompt);
+      answerCell.setValue(answer);
+      Utilities.sleep(1000); // API 호출 속도 제한 고려
+    }
+  }
+}
+
+// GPT 함수: 주어진 질문(prompt)에 대해 GPT-4o-mini 모델을 호출하여 응답을 반환합니다.
+function GPT(prompt) {
+  var apiKey = "여기에 Api키 입력";  // 각자의 API 키로 교체하세요.
+  if (!prompt || prompt.toString().trim() === "") return "";
+  
+  var url = "https://api.openai.com/v1/chat/completions";
+  var payload = {
+    "model": "gpt-4o-mini",
+    "messages": [
+      { "role": "system", "content": "You are a bot that extracts main word keywords for product reviews." },
+      { "role": "user", "content": prompt }
+    ],
+    "max_tokens": 200
+  };
+  
+  var options = {
+    "method": "post",
+    "headers": {
+      "Authorization": "Bearer " + apiKey,
+      "Content-Type": "application/json"
+    },
+    "payload": JSON.stringify(payload),
+    "muteHttpExceptions": true
+  };
+  
+  try {
+    var response = UrlFetchApp.fetch(url, options);
+    var code = response.getResponseCode();
+    if (code !== 200) {
+      return "Error: " + code + " " + response.getContentText();
+    }
+    var json = JSON.parse(response.getContentText());
+    if (!json.choices || json.choices.length === 0) {
+      return "Error: No response from GPT.";
+    }
+    return json.choices[0].message.content.trim();
+  } catch (e) {
+    return "Error: " + e.toString();
+  }
+}
